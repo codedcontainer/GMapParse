@@ -1,18 +1,19 @@
 <?php
 $kml = simplexml_load_file('');
+//print_r($kml);
 
-$dbHost = '';
+$dbHost = ''; 
 $dbUser = ''; 
 $dbPassword = ''; 
 $dbName = ''; 
 $dbTable = '';
 
-mysql_connect($dbHost, $dbUser, $dbPassword) or die('Could not connect to Database'); 
-mysql_select_db($dbName) or die('Could not select database'); 
+mysql_connect($dbHost, $dbUser, $dbPassword) or die('Could not connect to Database'); //Connect php mysql client to Bells server
+mysql_select_db($dbName) or die('Could not select database'); //Connect php mysql client 
 
 $createTable = "CREATE TABLE IF NOT EXISTS ".$dbTable."(";
 $createTable .= " id INT(2) AUTO_INCREMENT NOT NULL PRIMARY KEY, ";
-$createTable .= " location VARCHAR(10), ";
+$createTable .= " location VARCHAR(100), ";
 $createTable .=" latLong text )";
 
 mysql_query($createTable) or die(mysql_error() );
@@ -31,19 +32,13 @@ $regionNamesFix = array();
 for( $i=0; $i <= $numPoly; $i++)
 {
 	$numPlace = count( $kml->Document[0]->Folder[$i]->Placemark); //count the number of placemarks there are 
-	$namePlace = $kml->Document[0]->Folder[$i]->Placemark->name; 
-	if ( !is_object($namePlace) )
-	{
+	$namePlace = $kml->Document[0]->Folder[$i]->Placemark->name.''; 
 		//array_push($regionNames, $namePlace); 
-	}
+
 	for($z = 0; $z <= $numPlace; $z++) 
 	{
-		$regionName = $kml->Document[0]->Folder[$i]->Placemark[$z]->name."</br>"; //grab each placemarks name 
-		
-		if ( !is_object($regionName) && !array_filter($regionName, 'strlen') && !empty($regionName) )
-		{
-			array_push($regionNames, $regionName); 
-		}
+		$regionName = $kml->Document[0]->Folder[$i]->Placemark[$z]->name[0].''; //grab each placemarks name 
+		array_push($regionNames, $regionName); 
 		$regionNames = array_filter($regionNames);
 		
 		//get the cordinates inside of each placemark 
@@ -65,17 +60,12 @@ for( $i=0; $i <= $numPoly; $i++)
 		}
 	}
 }
+$regionNames = array_unique($regionNames);
 //removes all elements that are empty in the array and adds them to new array 
-foreach ($regionNames as $region)
-{
-	if (strlen($region) !== 5)
-	{
-		array_push($regionNamesFix, $region); 
-	}
-}
 // makes the array start at 1 just as the coordinates start at 1 
-array_unshift($regionNamesFix,"");
-unset($regionNamesFix[0]);
+array_unshift($regionNames,"");
+unset($regionNames[0]);
+print_r($regionNames);
 //lat and long in polygon conversion needs to be represented as "39.374 89.987564, 0 848474, ....."
 function arraySwitch($n)
 {
@@ -91,7 +81,7 @@ foreach ( $explodeCords as $keyChain => $exploded)
 	foreach ( $explodeCords as $keyChain2 => $exploded2 )
 	{
 
-		$insert = "INSERT INTO ".$dbTable." VALUES ('','".addslashes($regionNamesFix[$keyChain2])."','".$exploded2."');";
+		$insert = "INSERT INTO ".$dbTable." VALUES ('','".addslashes($regionNames[$keyChain2])."','".$exploded2."');";
 		print_r($insert);
 		mysql_query($insert) or die(mysql_error() );
 	} 
