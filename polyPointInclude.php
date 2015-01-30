@@ -5,7 +5,7 @@ $dbHost = '';
 $dbUser = ''; 
 $dbPassword = '';
 $dbName = ''; 
-$dbTable = ';
+$dbTable = '';
 $dbTable2 = '';
 
 mysql_connect($dbHost, $dbUser, $dbPassword) or die('Could not connect to Database'); 
